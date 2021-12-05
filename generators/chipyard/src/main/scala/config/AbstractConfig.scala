@@ -18,7 +18,7 @@ class AbstractConfig extends Config(
   new chipyard.harness.WithSimDebug ++                          // add SimJTAG or SimDTM adapters if debug module is enabled
   new chipyard.harness.WithGPIOTiedOff ++                       // tie-off chiptop GPIOs, if GPIOs are present
   new chipyard.harness.WithSimSPIFlashModel ++                  // add simulated SPI flash memory, if SPI is enabled
-  new chipyard.harness.WithSimAXIMMIO ++                        // add SimAXIMem for axi4 mmio port, if enabled
+  //new chipyard.harness.WithSimAXIMMIO ++                        // add SimAXIMem for axi4 mmio port, if enabled
   new chipyard.harness.WithTieOffInterrupts ++                  // tie-off interrupt ports, if present
   new chipyard.harness.WithTieOffL2FBusAXI ++                   // tie-off external AXI4 master, if present
   new chipyard.harness.WithTieOffCustomBootPin ++
@@ -50,7 +50,7 @@ class AbstractConfig extends Config(
   new chipyard.config.WithMemoryBusFrequency(100.0) ++           // Default 100 MHz mbus
   new chipyard.config.WithPeripheryBusFrequency(100.0) ++        // Default 100 MHz pbus
   new freechips.rocketchip.subsystem.WithJtagDTM ++              // set the debug module to expose a JTAG port
-  new freechips.rocketchip.subsystem.WithNoMMIOPort ++           // no top-level MMIO master port (overrides default set in rocketchip)
+  new freechips.rocketchip.subsystem.WithDefaultMMIOPort ++           // no top-level MMIO master port (overrides default set in rocketchip)
   new freechips.rocketchip.subsystem.WithNoSlavePort ++          // no top-level MMIO slave port (overrides default set in rocketchip)
   new freechips.rocketchip.subsystem.WithInclusiveCache ++       // use Sifive L2 cache
   new freechips.rocketchip.subsystem.WithNExtTopInterrupts(0) ++ // no external interrupts

@@ -20,10 +20,10 @@ import testchipip._
 import icenet.{CanHavePeripheryIceNIC, SimNetwork, NicLoopback, NICKey, NICIOvonly}
 
 import junctions.{NastiKey, NastiParameters}
-import midas.models.{FASEDBridge, AXI4EdgeSummary, CompleteConfig}
+import midas.models.{FASEDBridge, AXI4EdgeSummary, CompleteConfig,MMIOBridge}
 import midas.targetutils.{MemModelAnnotation, EnableModelMultiThreadingAnnotation}
 import firesim.bridges._
-import firesim.configs.MemModelKey
+import firesim.configs.{MMIOModelKey,MemModelKey}
 import tracegen.{TraceGenSystemModuleImp}
 import cva6.CVA6Tile
 
@@ -177,6 +177,26 @@ class WithFASEDBridge extends OverrideHarnessBinder({
   }
 })
 
+class WithMMIOBridge extends OverrideHarnessBinder({
+  (system: CanHaveMasterAXI4MMIOPort, th: FireSim, ports: Seq[ClockedAndResetIO[AXI4Bundle]]) => {
+    implicit val p: Parameters = GetSystemParameters(system)
+    (ports zip system.mmioAXI4Node.edges.in).map { case (axi4, edge) =>
+      val nastiKey = NastiParameters(axi4.bits.r.bits.data.getWidth,
+                                     axi4.bits.ar.bits.addr.getWidth,
+                                     axi4.bits.ar.bits.id.getWidth)
+      system match {
+        case s: BaseSubsystem => MMIOBridge(axi4.clock, axi4.bits, axi4.reset.asBool,
+          CompleteConfig(p(firesim.configs.MMIOModelKey),
+                         nastiKey,
+                         Some(AXI4EdgeSummary(edge)),
+                         Some("MMIOEdge")))
+        case _ => throw new Exception("Attempting to attach MMIO Bridge to misconfigured design")
+      }
+    }
+    Nil
+  }
+})
+
 class WithTracerVBridge extends ComposeHarnessBinder({
   (system: CanHaveTraceIOModuleImp, th: FireSim, ports: Seq[TraceOutputTop]) => {
     ports.map { p => p.traces.map(tileTrace => TracerVBridge(tileTrace)(system.p)) }
@@ -238,6 +258,7 @@ class WithDefaultFireSimBridges extends Config(
   new WithBlockDeviceBridge ++
   new WithFASEDBridge ++
   new WithFireSimMultiCycleRegfile ++
+  new WithMMIOBridge ++
   new WithFireSimFAME5 ++
   new WithTracerVBridge ++
   new WithFireSimIOCellModels
